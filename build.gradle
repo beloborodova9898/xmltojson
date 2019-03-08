@@ -1,0 +1,48 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'com.bmuschko.docker-java-application'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+
+sourceCompatibility = 1.8
+mainClassName = 'Main'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.7'
+    }
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile 'org.json:json:20171018'
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
+}
+
+docker {
+    javaApplication {
+        maintainer = 'Vava "beloborodova9898@gmail.com"'
+        ports = [8080]
+        tag = 'xmltojson'
+    }
+}
+
+task createDocker(type: DockerCreateContainer) {
+    dependsOn dockerBuildImage
+    targetImageId { dockerBuildImage.imageId }
+    portBindings = ['8080:8080']
+}
+
+task startDocker(type: DockerStartContainer) {
+    dependsOn createDocker
+    targetContainerId { createDocker.containerId }
+}
